@@ -1,6 +1,4 @@
 #!/bin/bash
-# SPDX-License-Identifier: MIT
-# Copyright (C) 2026 VIKINGYFY
 
 PKG_PATH="$GITHUB_WORKSPACE/wrt/package/"
 
@@ -28,7 +26,9 @@ fi
 
 #修改argon主题字体和颜色
 if [ -d *"luci-theme-argon"* ]; then
-	echo " " && cd ./luci-theme-argon/
+	echo " "
+
+	cd ./luci-theme-argon/
 
 	sed -i "s/primary '.*'/primary '#31a1a1'/; s/'0.2'/'0.5'/; s/'none'/'bing'/; s/'600'/'normal'/" ./luci-app-argon-config/root/etc/config/argon
 
@@ -37,20 +37,13 @@ fi
 
 #修改aurora菜单式样
 if [ -d *"luci-app-aurora-config"* ]; then
-	echo " " && cd ./luci-app-aurora-config/
+	echo " "
 
-	sed -i "s/nav_submenu_type '.*'/nav_submenu_type 'boxed-dropdown'/g" $(find ./root/usr/share/aurora/ -type f -name "*.template")
+	cd ./luci-app-aurora-config/
+
+	sed -i "s/nav_submenu_type '.*'/nav_submenu_type 'boxed-dropdown'/g" $(find ./root/ -type f -name "*aurora")
 
 	cd $PKG_PATH && echo "theme-aurora has been fixed!"
-fi
-
-#修改mini-diskmanager菜单位置
-if [ -d *"luci-app-mini-diskmanager"* ]; then
-	echo " " && cd ./luci-app-mini-diskmanager/
-
-	sed -i "s/services/system/g" ./luci-app-mini-diskmanager/root/usr/share/luci/menu.d/luci-app-mini-diskmanager.json
-
-	cd $PKG_PATH && echo "mini-diskmanager has been fixed!"
 fi
 
 #修改qca-nss-drv启动顺序
@@ -71,16 +64,6 @@ if [ -f "$NSS_PBUF" ]; then
 	sed -i 's/START=.*/START=86/g' $NSS_PBUF
 
 	cd $PKG_PATH && echo "qca-nss-pbuf has been fixed!"
-fi
-
-#修复TailScale配置文件冲突
-TS_FILE=$(find ../feeds/packages/ -maxdepth 3 -type f -wholename "*/tailscale/Makefile")
-if [ -f "$TS_FILE" ]; then
-	echo " "
-
-	sed -i '/\/files/d' $TS_FILE
-
-	cd $PKG_PATH && echo "tailscale has been fixed!"
 fi
 
 #修复Rust编译失败
