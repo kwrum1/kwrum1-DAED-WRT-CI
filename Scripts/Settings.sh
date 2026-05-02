@@ -81,10 +81,30 @@ function generate_config() {
 }
 
 ########################################
+# 修复第三方包缺失依赖导致 olddefconfig 失败
+########################################
+function fix_missing_dependencies() {
+  local onionshare_mk="./feeds/packages/net/onionshare-cli/Makefile"
+  local qmodem_mk="./package/QModem/application/qmodem/Makefile"
+
+  if [ -f "$onionshare_mk" ]; then
+    # 兼容不同 feed 的 python 包命名
+    sed -i 's/+python3-pysocks/+python3-py-socks/g' "$onionshare_mk"
+    sed -i 's/+python3-unidecode/+python3-text-unidecode/g' "$onionshare_mk"
+  fi
+
+  if [ -f "$qmodem_mk" ]; then
+    # 若依赖在当前源码不存在，移除硬依赖避免配置阶段报错中断
+    sed -i 's/+kmod-mhi-wwan//g; s/+quectel-CM-5G//g' "$qmodem_mk"
+  fi
+}
+
+########################################
 # 执行生成 config
 ########################################
 
 generate_config
+fix_missing_dependencies
 
 ########################################
 # Luci / 系统修改
