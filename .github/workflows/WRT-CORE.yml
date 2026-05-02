@@ -165,6 +165,7 @@ jobs:
       - name: Custom Settings
         run: |
           cd ./wrt/
+          rm -f .config
           
           if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
@@ -174,7 +175,12 @@ jobs:
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
           
-          make defconfig -j$(nproc) && make clean -j$(nproc)
+          # 防交互
+          export KCONFIG_NONINTERACTIVE=1
+          export TERM=dumb
+
+          make defconfig
+          make olddefconfig
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
