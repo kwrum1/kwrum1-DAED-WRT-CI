@@ -180,7 +180,10 @@ jobs:
           export TERM=dumb
 
           make defconfig
-          make olddefconfig
+          if ! make olddefconfig; then
+            echo "olddefconfig failed, rerun with verbose logs..."
+            make -j1 V=s olddefconfig
+          fi
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
