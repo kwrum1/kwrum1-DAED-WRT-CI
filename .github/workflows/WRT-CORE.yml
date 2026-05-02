@@ -166,7 +166,8 @@ jobs:
         run: |
           cd ./wrt/
           
-          rm -f .config
+          export TERM=dumb
+          export KCONFIG_NONINTERACTIVE=1
 
           if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
             cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
@@ -176,10 +177,11 @@ jobs:
 
           $GITHUB_WORKSPACE/Scripts/Settings.sh
           
-          export KCONFIG_NONINTERACTIVE=1
+          make defconfig
+          
           make olddefconfig
 
-          make defconfig -j$(nproc) && make clean -j$(nproc)
+          make clean -j$(nproc)
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
