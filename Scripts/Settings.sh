@@ -81,21 +81,25 @@ function generate_config() {
 }
 
 ########################################
-# 移除不用的 5G CPE/QModem 包，避免缺失依赖影响 olddefconfig
+# 移除不用的 5G CPE/WWAN 包，避免缺失依赖或内核 API 不兼容影响编译
 ########################################
 function remove_unused_5g_packages() {
-  local qmodem_patterns=(
+  local package_patterns=(
     "./package/QModem"
     "./package/feeds/*/qmodem"
+    "./feeds/packages/kernel/fibocom-qmi-wwan"
+    "./package/feeds/packages/fibocom-qmi-wwan"
   )
 
-  for pattern in "${qmodem_patterns[@]}"; do
+  for pattern in "${package_patterns[@]}"; do
     for path in $pattern; do
       [ -e "$path" ] || continue
       echo "remove unused 5G package: $path"
       rm -rf "$path"
     done
   done
+
+  echo "CONFIG_PACKAGE_fibocom-qmi-wwan=n" >> .config
 }
 
 ########################################
