@@ -84,23 +84,18 @@ function generate_config() {
 # 修复第三方包缺失依赖导致 olddefconfig 失败
 ########################################
 function fix_missing_dependencies() {
-  local onionshare_mks qmodem_mks
-  onionshare_mks=$(find ./package/ ./feeds/ -type f -path "*/onionshare-cli/Makefile" 2>/dev/null)
-  qmodem_mks=$(find ./package/ ./feeds/ -type f -path "*/qmodem/Makefile" 2>/dev/null)
+  local onionshare_mk="./feeds/packages/net/onionshare-cli/Makefile"
+  local qmodem_mk="./package/QModem/application/qmodem/Makefile"
 
-  if [ -n "$onionshare_mks" ]; then
-    while read -r mk; do
-      [ -z "$mk" ] && continue
-      # 这两个依赖在不同源码树中命名不一致，直接移除避免 olddefconfig 失败
-      sed -i 's/+python3-pysocks//g; s/+python3-py-socks//g; s/+python3-unidecode//g; s/+python3-text-unidecode//g' "$mk"
-    done <<< "$onionshare_mks"
+  if [ -f "$onionshare_mk" ]; then
+    # 兼容不同 feed 的 python 包命名
+    sed -i 's/+python3-pysocks/+python3-py-socks/g' "$onionshare_mk"
+    sed -i 's/+python3-unidecode/+python3-text-unidecode/g' "$onionshare_mk"
   fi
 
-  if [ -n "$qmodem_mks" ]; then
-    while read -r mk; do
-      [ -z "$mk" ] && continue
-      sed -i 's/+kmod-mhi-wwan//g; s/+quectel-CM-5G//g' "$mk"
-    done <<< "$qmodem_mks"
+  if [ -f "$qmodem_mk" ]; then
+    # 若依赖在当前源码不存在，移除硬依赖避免配置阶段报错中断
+    sed -i 's/+kmod-mhi-wwan//g; s/+quectel-CM-5G//g' "$qmodem_mk"
   fi
 }
 
