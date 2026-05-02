@@ -81,6 +81,24 @@ function generate_config() {
 }
 
 ########################################
+# 移除不用的 5G CPE/QModem 包，避免缺失依赖影响 olddefconfig
+########################################
+function remove_unused_5g_packages() {
+  local qmodem_patterns=(
+    "./package/QModem"
+    "./package/feeds/*/qmodem"
+  )
+
+  for pattern in "${qmodem_patterns[@]}"; do
+    for path in $pattern; do
+      [ -e "$path" ] || continue
+      echo "remove unused 5G package: $path"
+      rm -rf "$path"
+    done
+  done
+}
+
+########################################
 # 修复第三方包缺失依赖导致 olddefconfig 失败
 ########################################
 function fix_missing_dependencies() {
@@ -89,10 +107,6 @@ function fix_missing_dependencies() {
   local onionshare_files=(
     "./feeds/packages/net/onionshare-cli/Makefile"
     "./package/feeds/packages/onionshare-cli/Makefile"
-  )
-  local qmodem_patterns=(
-    "./package/QModem/application/qmodem/Makefile"
-    "./package/feeds/*/qmodem/Makefile"
   )
 
   for mk in "${onionshare_files[@]}"; do
@@ -107,24 +121,6 @@ function fix_missing_dependencies() {
       -e 's/+python3-text-unidecode//g' \
       "$mk"
   done
-
-  for pattern in "${qmodem_patterns[@]}"; do
-    for mk in $pattern; do
-      [ -f "$mk" ] || continue
-
-      echo "fix missing deps in $mk"
-      sed -i -E \
-        -e 's/[[:space:]]*\+([^[:space:]]+:)?kmod-mhi-wwan//g' \
-        -e 's/[[:space:]]*\+([^[:space:]]+:)?quectel-CM-5G//g' \
-        "$mk"
-
-      # Some forks may keep the dependency in a custom wrapped line. If it is
-      # still present, drop that dependency line so olddefconfig cannot stop.
-      if grep -qE 'kmod-mhi-wwan|quectel-CM-5G' "$mk"; then
-        sed -i -E '/kmod-mhi-wwan|quectel-CM-5G/d' "$mk"
-      fi
-    done
-  done
 }
 
 ########################################
@@ -132,6 +128,7 @@ function fix_missing_dependencies() {
 ########################################
 
 generate_config
+remove_unused_5g_packages
 fix_missing_dependencies
 
 ########################################
