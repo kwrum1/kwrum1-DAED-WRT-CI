@@ -112,12 +112,17 @@ function fix_missing_dependencies() {
     for mk in $pattern; do
       [ -f "$mk" ] || continue
 
-      sed -i \
-        -e 's/+kmod-mhi-wwan//g' \
-        -e 's/+PACKAGE_kmod-mhi-wwan:kmod-mhi-wwan//g' \
-        -e 's/+quectel-CM-5G//g' \
-        -e 's/+PACKAGE_quectel-CM-5G:quectel-CM-5G//g' \
+      echo "fix missing deps in $mk"
+      sed -i -E \
+        -e 's/[[:space:]]*\+([^[:space:]]+:)?kmod-mhi-wwan//g' \
+        -e 's/[[:space:]]*\+([^[:space:]]+:)?quectel-CM-5G//g' \
         "$mk"
+
+      # Some forks may keep the dependency in a custom wrapped line. If it is
+      # still present, drop that dependency line so olddefconfig cannot stop.
+      if grep -qE 'kmod-mhi-wwan|quectel-CM-5G' "$mk"; then
+        sed -i -E '/kmod-mhi-wwan|quectel-CM-5G/d' "$mk"
+      fi
     done
   done
 }
