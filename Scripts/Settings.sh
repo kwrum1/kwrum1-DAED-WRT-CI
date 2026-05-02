@@ -81,10 +81,28 @@ function generate_config() {
 }
 
 ########################################
+# 修复第三方包缺失依赖导致 olddefconfig 失败
+########################################
+function fix_missing_dependencies() {
+  local broken_dirs
+
+  # 这些第三方包在部分源码分支里存在无法满足的硬依赖，直接移除更稳定
+  broken_dirs=$(find ./package/ ./feeds/ -type d \( -iname "onionshare-cli" -o -iname "qmodem" \) 2>/dev/null)
+  if [ -n "$broken_dirs" ]; then
+    while read -r dir; do
+      [ -z "$dir" ] && continue
+      rm -rf "$dir"
+      echo "remove broken package: $dir"
+    done <<< "$broken_dirs"
+  fi
+}
+
+########################################
 # 执行生成 config
 ########################################
 
 generate_config
+fix_missing_dependencies
 
 ########################################
 # Luci / 系统修改
