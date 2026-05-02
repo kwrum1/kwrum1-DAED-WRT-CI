@@ -1,5 +1,29 @@
 #!/bin/bash
 
+########################################
+# eBPF config
+########################################
+function cat_ebpf_config() {
+  echo "CONFIG_BPF=y" >> "$1"
+  echo "CONFIG_BPF_SYSCALL=y" >> "$1"
+  echo "CONFIG_NET_CLS_BPF=y" >> "$1"
+  echo "CONFIG_NET_ACT_BPF=y" >> "$1"
+}
+
+########################################
+# kernel config merge
+########################################
+function cat_kernel_config() {
+  local file="$1"
+  [ -f "$file" ] && cat "$file" >> .config
+}
+
+########################################
+# remove wifi (你没定义过但在用)
+########################################
+function remove_wifi() {
+  echo "# WIFI disabled for $1" >> .config
+}
 
 # skb 回收
 function enable_skb_recycler() {
